@@ -1,90 +1,148 @@
-import tkinter
-from random import choice
-class Simon() :
-    def __init__(self, master) :
-        # Configure tkinter.Tk with some basic settings.
-        self.master = master
-        self.master.minsize(640, 480)
-        self.master.resizable(False, False)
-        self.master.title("Simon Memory Game")
-        self.master.update() # Complete any outstanding tkinter tasks.
+from tkinter import *
+import random
+import threading
+import time
 
-        # Create the canvas to be used to draw the rectangles that make up the game. Have it take up the entire window.
-        self.game_canvas = tkinter.Canvas(self.master, width = self.master.winfo_width(), height = self.master.winfo_height(), highlightthickness = 0)
-        self.game_canvas.pack()
+win = Tk()
+win.title("Simon Game")
+win.geometry('232x410')
+win.resizable(width=0, height=0)
 
-        # Set up the four colors that will be used throughout the game.
-        self.idle_colors = ("red", "blue", "green", "yellow")
-        self.tinted_colors = ("#ff4d4d", "#4d4dff", "#4dff4d", "#ffff4d")
-        self.current_colors = [color for color in self.idle_colors]
+global Green
+global Red
+global Yellow
+global Blue
+global watch
+global count
+global tmp
+global gameover
+global timer_count
+global score
+score = 0
+timer_count = 0
+watch = True
+gameover = False
+stt = []
+tmp = len(stt)
+tmp_stt = []
 
-        self.rectangle_ids = []
 
-        # Sequence of the colors for the current game and the position in the sequence for use when showing it to the user.
-        self.sequence = [choice(self.idle_colors)]
-        self.sequence_position = 0
+if gameover == False:
 
-        self.draw_canvas()
+	def ChangeColor(i=1):
+		global stt
+		global watch
+		global count
+		global timer_count
+		count = len(stt)
+		
+		for i in stt:
+			time.sleep(0.2)
 
-        self.show_sequence()
+			if i == 1:
+				win.after((timer_count+300), lambda: Green.config(bg='green'))
+				win.after((timer_count+500), lambda: Green.config(bg = '#003300'))
 
-        self.master.mainloop()
+			elif i == 2:
+				win.after((timer_count+300), lambda: Red.config(bg='red'))
+				win.after((timer_count+500), lambda: Red.config(bg = '#550000'))
 
-        # Show the sequence to the player, so the player can repeat it.
-    def show_sequence(self) :
-        # Pass the current color of the sequence to the flash function.
-        self.flash(self.sequence[self.sequence_position])
-        # Check that we have not reached the end of the sequence.
-        if(self.sequence_position < len(self.sequence) - 1) :
-            # Since we haven't reached the end of the sequence increment the postion and schedule a callback.
-            self.sequence_position += 1
-            self.master.after(1250, self.show_sequence)
-        else :
-            self.sequence_position = 0 # Reset the position for next round.
+			elif i == 3:
+				win.after((timer_count+300), lambda: Yellow.config(bg='yellow'))
+				win.after((timer_count+500), lambda: Yellow.config(bg = '#555500'))
 
-        # Flash a single rectangle once. Used to indicate it is apart of the sequence to the player.
-    def flash(self, color) :
-        index = self.idle_colors.index(color) # Find the position in the tuple that the specified color is at.
-        if self.current_colors[index] == self.idle_colors[index] : # Use the position of the color specified to compare if the current color on screen matches the idle one.
-            # If so set the current color equal to that of the tinted color.
-            self.current_colors[index] = self.tinted_colors[index]
-            self.master.after(1000, self.flash, color) # Call this function again in 1 seconds time to revert back to the idle color
-        else :
-            self.current_colors[index] = self.idle_colors[index] # Revert the current color back to the idle color.
-        self.draw_canvas() # Draw the canvas to reflect this change to the player.
+			elif i == 4:
+				win.after((timer_count+300), lambda: Blue.config(bg='blue'))
+				win.after((timer_count+500), lambda: Blue.config(bg = '#000055'))
 
-    def check_choice(self) :
-        color = self.idle_colors[self.rectangle_ids.index(self.game_canvas.find_withtag("current")[0])]
-        if(color == self.sequence[self.sequence_position]) :
-            if(self.sequence_position < len(self.sequence) - 1) :
-                self.sequence_position += 1
-            else :
-                self.master.title("Simon Memory Game - Score: {}".format(len(self.sequence))) # Update the score.
-                # Reached the end of the sequence append new color to sequence and play that.
-                self.sequence.append(choice(self.idle_colors))
-                self.sequence_position = 0
-                self.show_sequence()
-        else :
-            # Game Over for the player as they got the sequence wrong reset the game back to level one.
-            self.master.title("Simon Memory Game - Game Over! | Final Score: {}".format(len(self.sequence)))
-            self.sequence[:] = [] # Empty the list of sequences
-            self.sequence.append(choice(self.idle_colors)) # Add the first sequence of the new game to the list of sequences.
-            self.sequence_position = 0
-            self.show_sequence()
 
-    def draw_canvas(self) :
-        self.rectangle_ids[:] = [] # Empty out the list of ids.
-        self.game_canvas.delete("all") # Clean the frame ready for the new one
-        for index, color in enumerate(self.current_colors) : # Iterate over the colors in the list drawing each of the rectangles their respective place.
-            if index <= 1 :
-                self.rectangle_ids.append(self.game_canvas.create_rectangle(index * self.master.winfo_width(), 0, self.master.winfo_width() / 2, self.master.winfo_height() / 2, fill = color, outline = color))
-            else :
-                self.rectangle_ids.append(self.game_canvas.create_rectangle((index - 2) * self.master.winfo_width(), self.master.winfo_height(), self.master.winfo_width() / 2, self.master.winfo_height() / 2, fill = color, outline = color))
-        for id in self.rectangle_ids :
-            self.game_canvas.tag_bind(id, '<ButtonPress-1>', lambda e : self.check_choice())
+			timer_count += 220
 
-def main() :
-    root = tkinter.Tk()
-    gui = Simon(root)
 
-if __name__ == "__main__" : main()
+	def press(num = 1):
+		global watch
+		global gameover
+		global count
+		global score
+		if count > 0 and watch == False:
+			if watch == False:
+				if num == 1:
+					tmp_stt.append(1)
+					check(count, (len(tmp_stt)-1), num)
+					count -= 1
+
+				elif num == 2:
+					tmp_stt.append(2)
+					check(count, (len(tmp_stt)-1), num)
+					count -= 1
+
+				elif num == 3:
+					tmp_stt.append(3)
+					check(count, (len(tmp_stt)-1), num)
+					count -= 1
+
+				elif num == 4:
+					tmp_stt.append(4)
+					check(count, (len(tmp_stt)-1), num)
+					count -= 1
+
+		if count <= 0 and gameover == False:
+			score += 1
+			l0.config(text=score)
+			watch = True
+			tmp_stt.clear()
+			start(watch, gameover)
+
+
+	def check(count=100, x=0, num=1):
+		global stt
+		global gameover
+		if stt[x] != num:
+			gameover = True
+			l1.configure(text="GAMEOVER")
+
+
+l0 = Label(win, text="0", font=("Courier", 25))
+l0.grid(padx=10, pady=2, row=0, columnspan=2)
+
+l1 = Label(win, text="WATCH first, PLAY after")
+l1.grid(padx=10, pady=2, row=1, columnspan=2)
+
+Green = Button(win, text="", font=1, bg="#003300", activebackground='green', width=8, height=6, command=lambda: press(1))
+Green.grid(padx=5, pady=10, row=2, column=0)
+
+Red = Button(win, text="", font=1, bg="#550000", activebackground='red', width=8, height=6, command=lambda: press(2))
+Red.grid(padx=5, pady=10, row=2, column=1)
+
+Yellow = Button(win, text="", font=1, bg="#555500", activebackground='yellow', width=8, height=6, command=lambda: press(3))
+Yellow.grid(padx=5, pady=10, row=3, column=0)
+
+Blue = Button(win, text="", font=1, bg="#000055", activebackground='blue' ,width=8, height=6, command=lambda: press(4))
+Blue.grid(padx=5, pady=10, row=3, column=1)
+
+
+def first():
+	global watch
+	global gameover
+	if watch == True and gameover == False:
+		tmp = random.randint(1, 4)
+		stt.append(tmp)
+		#print("stt=", stt)
+		win.after(1000, ChangeColor)
+		watch = False
+		
+
+def start(a=True, b=False):
+	global watch
+	global stt
+	if a == True and b == False:
+		tmp = random.randint(1, 4)
+		stt.append(tmp)
+		#print("stt=", stt)
+		ChangeColor()
+		watch = False
+
+
+if __name__ == "__main__":
+	first()
+	mainloop()
